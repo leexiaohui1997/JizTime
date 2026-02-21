@@ -1,0 +1,12 @@
+[build]
+  # 构建命令，Taro H5 默认的构建命令
+  command = "npm run build:h5"
+  # 发布目录，Taro 默认的输出目录
+  publish = "dist"
+
+# 处理单页应用 (SPA) 路由问题
+# 当用户访问非根路径并刷新时，将请求重定向到 index.html，交由前端路由处理
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
