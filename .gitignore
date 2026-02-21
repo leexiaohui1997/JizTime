@@ -8,3 +8,6 @@ node_modules/
 *.local
 
 .trae/documents
+
+# Local Netlify folder
+.netlify
