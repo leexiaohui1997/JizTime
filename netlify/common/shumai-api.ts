@@ -1,5 +1,6 @@
 import { createHash } from 'node:crypto';
 import type { ShumaiResponse, AlmanacData, GodnessData, TimeData } from '../../shared/shumai-types';
+import { getCache, setCache } from './upyun';
 
 // 接口定义参考 docs/shumai-api.md
 const API_BASE = 'https://api.shumaidata.com/v10/almanac';
@@ -30,6 +31,19 @@ function formatDate(date: Date): string {
  * @param ymd 可选，格式 yyyyMMdd
  */
 async function fetchShumaiApi<T>(endpoint: string, ymd?: string): Promise<ShumaiResponse<T>> {
+  // 如果未提供 ymd，默认为当天
+  const queryYmd = ymd || formatDate(new Date());
+
+  // 构建缓存 Key: shumai/calendar/20231027.json
+  const cacheKey = `shumai/${endpoint.replace(/^\//, '')}/${queryYmd}.json`;
+
+  // 1. 尝试从又拍云缓存读取
+  const cachedData = await getCache<ShumaiResponse<T>>(cacheKey);
+  if (cachedData) {
+    console.log(`[ShumaiAPI] Cache hit for ${cacheKey}`);
+    return cachedData;
+  }
+
   const appid = process.env.SHUMAI_APPID;
   const security = process.env.SHUMAI_APP_SECURITY;
 
@@ -39,9 +53,6 @@ async function fetchShumaiApi<T>(endpoint: string, ymd?: string): Promise<Shumai
 
   const timestamp = Date.now();
   const sign = getSignature(appid, timestamp, security);
-  
-  // 如果未提供 ymd，默认为当天
-  const queryYmd = ymd || formatDate(new Date());
 
   const params = new URLSearchParams({
     appid,
@@ -69,6 +80,10 @@ async function fetchShumaiApi<T>(endpoint: string, ymd?: string): Promise<Shumai
     }
 
     const data = await response.json() as ShumaiResponse<T>;
+
+    // 2. 写入缓存到又拍云
+    await setCache(cacheKey, data);
+
     return data;
   } catch (error) {
     console.error(`[ShumaiAPI] Error fetching ${endpoint}:`, error);
