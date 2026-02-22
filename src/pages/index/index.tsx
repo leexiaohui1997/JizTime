@@ -2,16 +2,25 @@ import { View, Text, Button, Input } from '@tarojs/components'
 import Taro, { useLoad } from '@tarojs/taro'
 import { useState } from 'react'
 import { API_BASE_URL } from '../../config/api'
+import { formatGreeting } from '@shared/utils'
 import './index.scss'
 
 export default function Index() {
   const [name, setName] = useState('')
   const [message, setMessage] = useState('')
+  const [localMessage, setLocalMessage] = useState('')
   const [loading, setLoading] = useState(false)
 
   useLoad(() => {
     console.log('Page loaded.')
   })
+
+  // 本地调用共享逻辑
+  const handleLocalGreet = () => {
+    if (!name) return
+    // 直接在前端使用共享函数，无需网络请求
+    setLocalMessage(formatGreeting(name))
+  }
 
   // 调用 Netlify Function
   const callHelloFunction = async () => {
@@ -22,6 +31,7 @@ export default function Index() {
 
     setLoading(true)
     setMessage('')
+    handleLocalGreet()
 
     try {
       // 拼接完整的请求 URL
@@ -38,7 +48,9 @@ export default function Index() {
       })
 
       if (response.statusCode === 200) {
-        setMessage(response.data.message)
+        // 后端返回的数据中包含了后端调用的结果
+        const result = response.data
+        setMessage(`服务端返回: ${result.message}\n${result.secretInfo}`)
       } else {
         setMessage(`Error: ${response.statusCode}`)
       }
@@ -74,9 +86,15 @@ export default function Index() {
         </Button>
       </View>
 
+      {localMessage && (
+        <View className='result' style={{ backgroundColor: '#f0fff4', borderColor: '#bbf7d0', color: '#166534' }}>
+          <Text>前端本地计算: {localMessage}</Text>
+        </View>
+      )}
+
       {message && (
         <View className='result'>
-          <Text>返回结果: {message}</Text>
+          <Text style={{ whiteSpace: 'pre-wrap' }}>{message}</Text>
         </View>
       )}
 

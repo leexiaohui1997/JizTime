@@ -1,10 +1,11 @@
 import { defineConfig, type UserConfigExport } from '@tarojs/cli'
+import path from 'path'
 
 import devConfig from './dev'
 import prodConfig from './prod'
 
 // https://taro-docs.jd.com/docs/next/config#defineconfig-辅助函数
-export default defineConfig<'vite'>(async (merge, { command, mode }) => {
+export default defineConfig<'vite'>(async (merge, {  }) => {
   const baseConfig: UserConfigExport<'vite'> = {
     projectName: 'JizTime',
     date: '2026-2-22',
@@ -17,6 +18,10 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
     },
     sourceRoot: 'src',
     outputRoot: 'dist',
+    alias: {
+      // 仅配置 @shared 别名，不配置 @server，确保前端无法引用后端专用代码
+      '@shared': path.resolve(__dirname, '..', 'shared')
+    },
     plugins: [
       "@tarojs/plugin-generator"
     ],
@@ -51,11 +56,12 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
       publicPath: '/',
       staticDirectory: 'static',
 
-      miniCssExtractPluginOption: {
-        ignoreOrder: true,
-        filename: 'css/[name].[hash].css',
-        chunkFilename: 'css/[name].[chunkhash].css'
-      },
+      // miniCssExtractPluginOption 是 Webpack 配置，在 Vite 模式下不适用，注释掉以避免混淆
+      // miniCssExtractPluginOption: {
+      //   ignoreOrder: true,
+      //   filename: 'css/[name].[hash].css',
+      //   chunkFilename: 'css/[name].[chunkhash].css'
+      // },
       postcss: {
         autoprefixer: {
           enable: true,
@@ -69,6 +75,16 @@ export default defineConfig<'vite'>(async (merge, { command, mode }) => {
           }
         }
       },
+      // 强制 Vite 预构建 Taro 运行时依赖
+      // @ts-ignore
+      vite: {
+        optimizeDeps: {
+          include: [
+            '@tarojs/runtime',
+            '@tarojs/plugin-platform-h5/dist/runtime'
+          ]
+        }
+      }
     },
     rn: {
       appName: 'taroDemo',
