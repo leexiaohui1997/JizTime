@@ -1,8 +1,10 @@
 import { View } from '@tarojs/components'
 import Taro, { useLoad, useRouter } from '@tarojs/taro'
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Button, Cell, Tag, Loading } from '@nutui/nutui-react-taro'
+import dayjs from 'dayjs'
 import { API_BASE_URL } from '../../config/api'
+import DatePicker from '../../components/DatePicker'
 import type { ShumaiResponse, AlmanacData, GodnessData, TimeData } from '@shared/shumai-types'
 import './index.scss'
 
@@ -22,6 +24,15 @@ export default function Home() {
 
   // 核心状态
   const [ymd, setYmd] = useState<string>('')
+
+  const date = useMemo(() => {
+    const d = dayjs(ymd)
+    return d.isValid() ? d.toDate() : null
+  }, [ymd])
+
+  const setDate = useCallback((date: Date) => {
+    setYmd(dayjs(date).format('YYYYMMDD'))
+  }, [])
 
   // 数据状态
   const [almanacData, setAlmanacData] = useState<AlmanacData | null>(null)
@@ -98,43 +109,14 @@ export default function Home() {
     }
   }
 
+  if (!date) {
+    return <></>
+  }
+
   // --- UI 渲染逻辑 ---
   return (
     <View className='home'>
-      <Cell title='当前日期' extra={ymd} />
-
-      {loading && (
-        <View style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
-          <Loading type="spinner">数据加载中...</Loading>
-        </View>
-      )}
-
-      {error && (
-        <View style={{ padding: '20px', textAlign: 'center' }}>
-          <Tag type="danger">错误: {error}</Tag>
-          <Button type="primary" size="small" style={{ marginTop: '10px' }} onClick={() => setYmd(ymd)}>
-            重试
-          </Button>
-        </View>
-      )}
-
-      {!loading && !error && (
-        <View>
-          <View style={{ padding: '10px' }}>
-            <Tag type="success">数据已就绪</Tag>
-          </View>
-
-          <Cell.Group title="数据概览">
-            <Cell title="黄历数据" extra={almanacData ? '已获取' : '无'} />
-            <Cell title="吉神数据" extra={godnessData ? '已获取' : '无'} />
-            <Cell title="吉时数据" extra={timeData ? '已获取' : '无'} />
-          </Cell.Group>
-
-          <View style={{ padding: '20px' }}>
-             <Button type="info" block>开始编写 UI</Button>
-          </View>
-        </View>
-      )}
+      <DatePicker value={date} onChange={setDate} />
     </View>
   )
 }

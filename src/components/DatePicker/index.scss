@@ -1,0 +1,41 @@
+.bar {
+  gap: 96px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  $h: 60px;
+
+  &-item {
+    width: 200px;
+    height: $h;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #c8360e;
+    color: #fff;
+    font-size: 32px;
+    position: relative;
+  }
+
+  &-icon {
+    top: 0;
+    right: 0;
+    width: $h;
+    height: $h;
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+  }
+}
+
+.p {
+  font-size: 300px;
+  font-weight: bold;
+  color: #f0b840;
+  -webkit-text-stroke: 8px #c8360e;
+  text-align: center;
+  line-height: 1.4;
+}
