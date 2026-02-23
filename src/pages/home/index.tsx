@@ -1,6 +1,7 @@
 import { View } from '@tarojs/components'
 import Taro, { useLoad, useRouter } from '@tarojs/taro'
 import { useState, useEffect } from 'react'
+import { Button, Cell, Tag, Loading } from '@nutui/nutui-react-taro'
 import { API_BASE_URL } from '../../config/api'
 import type { ShumaiResponse, AlmanacData, GodnessData, TimeData } from '@shared/shumai-types'
 import './index.scss'
@@ -97,27 +98,40 @@ export default function Home() {
     }
   }
 
-  // --- UI 渲染逻辑 (此处仅为占位，请在此处开始编写您的 UI) ---
+  // --- UI 渲染逻辑 ---
   return (
     <View className='home'>
-      <View>当前日期: {ymd}</View>
+      <Cell title='当前日期' extra={ymd} />
 
-      {loading && <View>加载数据中...</View>}
-      {error && <View style={{ color: 'red' }}>错误: {error}</View>}
+      {loading && (
+        <View style={{ display: 'flex', justifyContent: 'center', padding: '20px' }}>
+          <Loading type="spinner">数据加载中...</Loading>
+        </View>
+      )}
+
+      {error && (
+        <View style={{ padding: '20px', textAlign: 'center' }}>
+          <Tag type="danger">错误: {error}</Tag>
+          <Button type="primary" size="small" style={{ marginTop: '10px' }} onClick={() => setYmd(ymd)}>
+            重试
+          </Button>
+        </View>
+      )}
 
       {!loading && !error && (
         <View>
-          <View>数据已就绪，请开始编写 UI</View>
-          {/*
-            可用数据变量:
-            - almanacData (黄历)
-            - godnessData (吉神)
-            - timeData (吉时)
-          */}
-          <View style={{ marginTop: 20, fontSize: 12, color: '#666' }}>
-            <View>Almanac: {almanacData ? '已获取' : '无'}</View>
-            <View>Godness: {godnessData ? '已获取' : '无'}</View>
-            <View>Time: {timeData ? '已获取' : '无'}</View>
+          <View style={{ padding: '10px' }}>
+            <Tag type="success">数据已就绪</Tag>
+          </View>
+
+          <Cell.Group title="数据概览">
+            <Cell title="黄历数据" extra={almanacData ? '已获取' : '无'} />
+            <Cell title="吉神数据" extra={godnessData ? '已获取' : '无'} />
+            <Cell title="吉时数据" extra={timeData ? '已获取' : '无'} />
+          </Cell.Group>
+
+          <View style={{ padding: '20px' }}>
+             <Button type="info" block>开始编写 UI</Button>
           </View>
         </View>
       )}
